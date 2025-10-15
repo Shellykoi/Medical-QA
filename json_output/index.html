@@ -1,0 +1,203 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MongoDB数据查看器</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        .content {
+            padding: 30px;
+        }
+        .collection-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #667eea;
+        }
+        .collection-title {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .collection-info {
+            color: #666;
+            margin-bottom: 15px;
+        }
+        .view-button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.3s;
+        }
+        .view-button:hover {
+            background: #5a6fd8;
+        }
+        .data-viewer {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .json-data {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗄️ MongoDB数据查看器</h1>
+            <p>医疗知识图谱数据展示</p>
+        </div>
+        <div class="content">
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalCollections">-</div>
+                    <div class="stat-label">数据集合</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalRecords">-</div>
+                    <div class="stat-label">总记录数</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="exportTime">-</div>
+                    <div class="stat-label">导出时间</div>
+                </div>
+            </div>
+            
+            <div id="collectionsList">
+                <!-- 集合列表将在这里动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 加载数据
+        async function loadData() {
+            try {
+                // 加载汇总信息
+                const summaryResponse = await fetch('export_summary.json');
+                const summary = await summaryResponse.json();
+                
+                // 更新统计信息
+                document.getElementById('totalCollections').textContent = summary.total_collections;
+                document.getElementById('totalRecords').textContent = summary.total_records;
+                document.getElementById('exportTime').textContent = new Date(summary.export_time).toLocaleString();
+                
+                // 生成集合列表
+                const collectionsList = document.getElementById('collectionsList');
+                for (const [collectionName, info] of Object.entries(summary.collections)) {
+                    const collectionCard = document.createElement('div');
+                    collectionCard.className = 'collection-card';
+                    collectionCard.innerHTML = `
+                        <div class="collection-title">📊 ${collectionName}</div>
+                        <div class="collection-info">
+                            记录数: ${info.record_count} | 
+                            文件大小: ${(info.file_size / 1024).toFixed(2)} KB
+                        </div>
+                        <button class="view-button" onclick="viewCollection('${collectionName}')">
+                            查看数据
+                        </button>
+                    `;
+                    collectionsList.appendChild(collectionCard);
+                }
+                
+            } catch (error) {
+                console.error('加载数据失败:', error);
+                document.getElementById('collectionsList').innerHTML = 
+                    '<div class="collection-card">❌ 无法加载数据，请确保JSON文件存在</div>';
+            }
+        }
+        
+        // 查看集合数据
+        async function viewCollection(collectionName) {
+            try {
+                const response = await fetch(`${collectionName}.json`);
+                const data = await response.json();
+                
+                // 创建数据查看器
+                const viewer = document.createElement('div');
+                viewer.className = 'data-viewer';
+                viewer.innerHTML = `
+                    <h3>📋 ${collectionName} 数据 (前10条)</h3>
+                    <div class="json-data">${JSON.stringify(data.slice(0, 10), null, 2)}</div>
+                    <button class="view-button" onclick="this.parentElement.remove()">关闭</button>
+                `;
+                
+                document.getElementById('collectionsList').appendChild(viewer);
+                
+            } catch (error) {
+                console.error('查看数据失败:', error);
+                alert('无法加载数据文件');
+            }
+        }
+        
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>
+        

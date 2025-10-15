@@ -12,11 +12,20 @@ class MedicalGraph:
     def __init__(self):
         cur_dir = '/'.join(os.path.abspath(__file__).split('/')[:-1])
         self.data_path = os.path.join(cur_dir, 'data/medical.json')
-        self.g = Graph(
-            host="127.0.0.1",  # neo4j 搭载服务器的ip地址，ifconfig可获取到
-            http_port=7474,  # neo4j 服务器监听的端口号
-            user="lhy",  # 数据库user name，如果没有更改过，应该是neo4j
-            password="lhy123")
+        # 新版本py2neo的连接方式
+        try:
+            # 尝试连接Neo4j数据库
+            self.g = Graph(
+                "bolt://127.0.0.1:7687",  # Neo4j bolt协议地址
+                auth=("neo4j", "password"))  # 正确的用户名和密码
+            print("✅ Neo4j数据库连接成功！")
+        except Exception as e:
+            print(f"❌ Neo4j数据库连接失败: {e}")
+            print("请确保：")
+            print("1. Neo4j数据库已安装并启动")
+            print("2. 默认用户名: neo4j, 密码: password")
+            print("3. 或者修改代码中的用户名和密码")
+            raise e
 
     '''读取文件'''
     def read_nodes(self):

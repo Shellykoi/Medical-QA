@@ -35,7 +35,7 @@ class CrimeSpider:
 
     '''测试'''
     def spider_main(self):
-        for page in range(1, 11000):
+        for page in range(1, 10):  # 限制爬取页数用于演示
             try:
                 basic_url = 'http://jib.xywy.com/il_sii/gaishu/%s.htm'%page
                 cause_url = 'http://jib.xywy.com/il_sii/cause/%s.htm'%page
@@ -45,6 +45,7 @@ class CrimeSpider:
                 treat_url = 'http://jib.xywy.com/il_sii/treat/%s.htm'%page
                 food_url = 'http://jib.xywy.com/il_sii/food/%s.htm'%page
                 drug_url = 'http://jib.xywy.com/il_sii/drug/%s.htm'%page
+                complication_url = 'http://jib.xywy.com/il_sii/complication/%s.htm'%page
                 data = {}
                 data['url'] = basic_url
                 data['basic_info'] = self.basicinfo_spider(basic_url)
@@ -55,8 +56,9 @@ class CrimeSpider:
                 data['treat_info'] = self.treat_spider(treat_url)
                 data['food_info'] = self.food_spider(food_url)
                 data['drug_info'] = self.drug_spider(drug_url)
+                data['complication_info'] = self.complication_spider(complication_url)  # 新增并发症信息
                 print(page, basic_url)
-                self.col.insert(data)
+                self.col.insert_one(data)
 
             except Exception as e:
                 print(e, page)
@@ -98,6 +100,39 @@ class CrimeSpider:
         selector = etree.HTML(html)
         drugs = [i.replace('\n','').replace('\t', '').replace(' ','') for i in selector.xpath('//div[@class="fl drug-pic-rec mr30"]/p/a/text()')]
         return drugs
+
+    '''并发症信息爬取'''
+    def complication_spider(self, url):
+        """爬取疾病并发症信息"""
+        try:
+            html = self.get_html(url)
+            selector = etree.HTML(html)
+            
+            # 爬取并发症列表
+            complications = []
+            
+            # 方法1：从并发症列表页面爬取
+            comp_list = selector.xpath('//div[@class="mt20 articl-know"]/p')
+            for p in comp_list:
+                comp_text = p.xpath('string(.)').replace('\r','').replace('\n','').replace('\xa0', '').replace('   ', '').replace('\t','')
+                if comp_text and len(comp_text.strip()) > 0:
+                    complications.append(comp_text.strip())
+            
+            # 方法2：从疾病详情页面提取并发症信息
+            comp_sections = selector.xpath('//div[contains(@class, "complication") or contains(text(), "并发症")]/following-sibling::*')
+            for section in comp_sections:
+                comp_text = section.xpath('string(.)').replace('\r','').replace('\n','').replace('\xa0', '').replace('   ', '').replace('\t','')
+                if comp_text and len(comp_text.strip()) > 0:
+                    complications.append(comp_text.strip())
+            
+            # 去重并过滤
+            complications = list(set([comp for comp in complications if len(comp) > 2 and '并发症' not in comp]))
+            
+            return complications
+            
+        except Exception as e:
+            print(f"并发症信息爬取失败: {e}")
+            return []
 
     '''food治疗解析'''
     def food_spider(self, url):
@@ -156,11 +191,11 @@ class CrimeSpider:
                 data = {}
                 data['url']= url
                 data['html'] = html
-                self.db['jc'].insert(data)
+                self.db['jc'].insert_one(data)
                 print(url)
             except Exception as e:
                 print(e)
 
 
 handler = CrimeSpider()
-handler.inspect_crawl()
+handler.spider_main()

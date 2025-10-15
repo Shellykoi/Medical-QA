@@ -6,7 +6,9 @@
 
 class CutWords:
     def __init__(self):
-        dict_path = './disease.txt'
+        import os
+        cur_dir = '/'.join(os.path.abspath(__file__).split('/')[:-1])
+        dict_path = os.path.join(cur_dir, '../dict/disease.txt')
         self.word_dict, self.max_wordlen = self.load_words(dict_path)
 
     # 加载词典

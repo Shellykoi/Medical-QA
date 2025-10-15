@@ -107,8 +107,13 @@
 
         .input-container {
             display: flex;
-            gap: 10px;
+            gap: 15px;
             align-items: center;
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            position: sticky;
+            bottom: 0;
         }
 
         .input-field {
@@ -149,6 +154,90 @@
 
         .examples {
             margin-top: 15px;
+            padding: 0 30px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: white;
+            border-bottom: 1px solid #e9ecef;
+            padding: 0 30px;
+        }
+
+        .nav-tab {
+            padding: 15px 25px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            color: #6c757d;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            font-weight: 600;
+        }
+
+        .nav-tab:hover {
+            color: #667eea;
+            background: #f8f9fa;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .knowledge-graph {
+            padding: 30px;
+            background: white;
+            min-height: 400px;
+        }
+
+        .graph-container {
+            width: 100%;
+            height: 500px;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            font-size: 1.1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
         }
 
         .examples h3 {
@@ -305,35 +394,85 @@
         </div>
         
         <div class="chat-container">
-            <div class="chat-messages" id="chatMessages">
-                <div class="welcome-message">
-                    <h2>欢迎使用医疗问答系统！</h2>
-                    <p>我是您的智能医疗助手，可以为您提供以下服务：</p>
-                    <div class="features">
-                        <div class="feature">
-                            <div class="feature-icon">🩺</div>
-                            <h3>症状查询</h3>
-                            <p>了解疾病症状</p>
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="switchTab('chat')">💬 智能问答</button>
+                <button class="nav-tab" onclick="switchTab('graph')">🕸️ 知识图谱</button>
+                <button class="nav-tab" onclick="switchTab('stats')">📊 数据统计</button>
+            </div>
+
+            <div id="chat-tab" class="tab-content active">
+                <div class="chat-messages" id="chatMessages">
+                    <div class="welcome-message">
+                        <h2>欢迎使用医疗问答系统！</h2>
+                        <p>我是您的智能医疗助手，可以为您提供以下服务：</p>
+                        <div class="features">
+                            <div class="feature">
+                                <div class="feature-icon">🩺</div>
+                                <h3>症状查询</h3>
+                                <p>了解疾病症状</p>
+                            </div>
+                            <div class="feature">
+                                <div class="feature-icon">🔍</div>
+                                <h3>病因分析</h3>
+                                <p>分析疾病成因</p>
+                            </div>
+                            <div class="feature">
+                                <div class="feature-icon">💊</div>
+                                <h3>治疗建议</h3>
+                                <p>提供治疗信息</p>
+                            </div>
+                            <div class="feature">
+                                <div class="feature-icon">📋</div>
+                                <h3>疾病描述</h3>
+                                <p>详细疾病介绍</p>
+                            </div>
                         </div>
-                        <div class="feature">
-                            <div class="feature-icon">🔍</div>
-                            <h3>病因分析</h3>
-                            <p>分析疾病成因</p>
-                        </div>
-                        <div class="feature">
-                            <div class="feature-icon">💊</div>
-                            <h3>治疗建议</h3>
-                            <p>提供治疗信息</p>
-                        </div>
-                        <div class="feature">
-                            <div class="feature-icon">📋</div>
-                            <h3>疾病描述</h3>
-                            <p>详细疾病介绍</p>
+                        <p style="margin-top: 20px; font-size: 0.9rem; color: #dc3545;">
+                            ⚠️ 重要提醒：本系统仅供参考，不能替代专业医疗建议。如有严重疾病，请及时就医。
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="graph-tab" class="tab-content">
+                <div class="knowledge-graph">
+                    <h2>医疗知识图谱可视化</h2>
+                    <p>展示疾病、症状、药物之间的关系网络</p>
+                    <div class="graph-container" id="graphContainer">
+                        <div>
+                            <div style="font-size: 3rem; margin-bottom: 20px;">🕸️</div>
+                            <p>知识图谱可视化功能</p>
+                            <p style="font-size: 0.9rem; margin-top: 10px;">点击下方按钮加载知识图谱</p>
+                            <button class="send-button" onclick="loadKnowledgeGraph()" style="margin-top: 20px;">
+                                加载知识图谱
+                            </button>
                         </div>
                     </div>
-                    <p style="margin-top: 20px; font-size: 0.9rem; color: #dc3545;">
-                        ⚠️ 重要提醒：本系统仅供参考，不能替代专业医疗建议。如有严重疾病，请及时就医。
-                    </p>
+                </div>
+            </div>
+
+            <div id="stats-tab" class="tab-content">
+                <div class="knowledge-graph">
+                    <h2>数据统计</h2>
+                    <p>医疗知识库的统计信息</p>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">8,807</div>
+                            <div class="stat-label">疾病数量</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">5,998</div>
+                            <div class="stat-label">症状数量</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">300K+</div>
+                            <div class="stat-label">关系数量</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">4.4</div>
+                            <div class="stat-label">实体数量(万)</div>
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -499,6 +638,119 @@
             const input = document.getElementById('messageInput');
             input.value = question;
             document.getElementById('sendButton').click();
+        }
+
+        function switchTab(tabName) {
+            // 隐藏所有标签页内容
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 移除所有标签按钮的active类
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 显示选中的标签页
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            // 激活对应的标签按钮
+            event.target.classList.add('active');
+        }
+
+        async function loadKnowledgeGraph() {
+            const container = document.getElementById('graphContainer');
+            container.innerHTML = `
+                <div style="text-align: center;">
+                    <div style="font-size: 3rem; margin-bottom: 20px;">🔄</div>
+                    <p>正在检查知识图谱构建环境...</p>
+                    <p style="font-size: 0.9rem; color: #6c757d; margin-top: 10px;">
+                        检查Neo4j数据库连接和配置
+                    </p>
+                    <div style="margin-top: 20px;">
+                        <div style="width: 200px; height: 4px; background: #e9ecef; border-radius: 2px; margin: 0 auto;">
+                            <div style="width: 60%; height: 100%; background: #667eea; border-radius: 2px; animation: loading 2s infinite;"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            try {
+                // 调用知识图谱构建API
+                const response = await fetch('/api/build_graph', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    container.innerHTML = `
+                        <div style="text-align: center;">
+                            <div style="font-size: 3rem; margin-bottom: 20px;">✅</div>
+                            <p>知识图谱构建完成！</p>
+                            <p style="font-size: 0.9rem; color: #6c757d; margin-top: 10px;">
+                                包含 ${data.data.diseases} 个疾病节点和 ${data.data.relationships} 个关系
+                            </p>
+                        </div>
+                    `;
+                } else if (data.status === 'warning') {
+                    container.innerHTML = `
+                        <div style="text-align: center;">
+                            <div style="font-size: 3rem; margin-bottom: 20px;">⚠️</div>
+                            <p>知识图谱构建需要1-2小时</p>
+                            <p style="font-size: 0.9rem; color: #6c757d; margin-top: 10px;">
+                                建议在命令行中运行构建脚本
+                            </p>
+                            <div style="margin-top: 30px; padding: 20px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 10px;">
+                                <h3 style="color: #856404; margin-bottom: 15px;">构建说明</h3>
+                                <div style="text-align: left; color: #856404;">
+                                    <p><strong>命令行构建：</strong></p>
+                                    <code style="background: #f8f9fa; padding: 10px; border-radius: 5px; display: block; margin: 10px 0;">
+                                        python3 build_medicalgraph.py
+                                    </code>
+                                    <p><strong>预计时间：</strong> 1-2小时</p>
+                                    <p><strong>数据量：</strong> ${data.data.diseases} 个疾病，${data.data.relationships} 个关系</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <div style="text-align: center;">
+                            <div style="font-size: 3rem; margin-bottom: 20px;">❌</div>
+                            <p>Neo4j数据库连接失败</p>
+                            <p style="font-size: 0.9rem; color: #dc3545; margin-top: 10px;">
+                                ${data.message}
+                            </p>
+                            <div style="margin-top: 30px; padding: 20px; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 10px;">
+                                <h3 style="color: #721c24; margin-bottom: 15px;">安装步骤</h3>
+                                <div style="text-align: left; color: #721c24;">
+                                    <p>1. 安装Java环境</p>
+                                    <p>2. 下载并安装Neo4j</p>
+                                    <p>3. 启动Neo4j服务</p>
+                                    <p>4. 配置数据库连接信息</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                container.innerHTML = `
+                    <div style="text-align: center;">
+                        <div style="font-size: 3rem; margin-bottom: 20px;">❌</div>
+                        <p>知识图谱构建失败</p>
+                        <p style="font-size: 0.9rem; color: #dc3545; margin-top: 10px;">
+                            ${error.message}
+                        </p>
+                        <button class="send-button" onclick="loadKnowledgeGraph()" style="margin-top: 20px;">
+                            重试
+                        </button>
+                    </div>
+                `;
+            }
         }
         
         // 初始化应用

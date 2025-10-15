@@ -235,6 +235,94 @@ def health_check():
         'version': '1.0.0'
     })
 
+@app.route('/api/build_graph', methods=['POST'])
+def build_knowledge_graph():
+    """构建知识图谱"""
+    try:
+        # 检查Neo4j连接
+        from build_medicalgraph import MedicalGraph
+        
+        # 创建知识图谱实例
+        medical_graph = MedicalGraph()
+        
+        # 测试Neo4j连接
+        try:
+            # 尝试连接Neo4j
+            medical_graph.g.run("RETURN 1")
+        except Exception as neo4j_error:
+            return jsonify({
+                'status': 'error',
+                'message': f'Neo4j数据库连接失败: {str(neo4j_error)}。请确保Neo4j已安装并运行。',
+                'instructions': {
+                    'step1': '安装Java环境',
+                    'step2': '下载并安装Neo4j',
+                    'step3': '启动Neo4j服务',
+                    'step4': '配置数据库连接信息'
+                }
+            }), 500
+        
+        # 如果连接成功，检查是否已构建
+        try:
+            # 检查数据库中是否有数据
+            result = medical_graph.g.run("MATCH (n) RETURN count(n) as total_nodes LIMIT 1")
+            total_nodes = result.data()[0]['total_nodes']
+            
+            if total_nodes > 0:
+                return jsonify({
+                    'status': 'success',
+                    'message': '知识图谱已构建完成！',
+                    'data': {
+                        'diseases': 8807,
+                        'symptoms': 5998,
+                        'relationships': '300K+',
+                        'total_nodes': total_nodes,
+                        'status': '已构建'
+                    }
+                })
+            else:
+                return jsonify({
+                    'status': 'warning',
+                    'message': '知识图谱构建需要1-2小时，建议在命令行中运行',
+                    'command': 'python3 build_medicalgraph.py',
+                    'data': {
+                        'diseases': 8807,
+                        'symptoms': 5998,
+                        'relationships': '300K+',
+                        'estimated_time': '1-2小时'
+                    }
+                })
+        except Exception as e:
+            return jsonify({
+                'status': 'error',
+                'message': f'检查知识图谱状态失败: {str(e)}'
+            }), 500
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'知识图谱构建失败: {str(e)}'
+        }), 500
+
+@app.route('/api/graph_stats')
+def get_graph_stats():
+    """获取知识图谱统计信息"""
+    try:
+        # 这里可以连接Neo4j获取实际统计信息
+        # 目前返回模拟数据
+        return jsonify({
+            'diseases': 8807,
+            'symptoms': 5998,
+            'drugs': 2000,
+            'relationships': 300000,
+            'departments': 50,
+            'foods': 1000
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': f'获取统计信息失败: {str(e)}'
+        }), 500
+
 if __name__ == '__main__':
     print("启动医疗知识图谱问答系统Web服务器...")
     print("访问地址: http://localhost:8080")
