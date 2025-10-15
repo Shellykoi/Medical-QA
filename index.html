@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>医疗知识图谱问答系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 1000px;
+            height: 80vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #e9ecef;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .message.user {
+            text-align: right;
+        }
+
+        .message.assistant {
+            text-align: left;
+        }
+
+        .message-bubble {
+            display: inline-block;
+            max-width: 70%;
+            padding: 15px 20px;
+            border-radius: 20px;
+            font-size: 1rem;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message.assistant .message-bubble {
+            background: white;
+            color: #333;
+            border: 1px solid #e9ecef;
+            border-bottom-left-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .message-time {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .input-field {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .send-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .send-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .send-button:active {
+            transform: translateY(0);
+        }
+
+        .examples {
+            margin-top: 15px;
+        }
+
+        .examples h3 {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .example-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .example-btn {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            color: #495057;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .example-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 5px;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .typing-indicator.show {
+            display: flex;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 3px;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: #6c757d;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+
+        .welcome-message {
+            text-align: center;
+            color: #6c757d;
+            padding: 40px 20px;
+        }
+
+        .welcome-message h2 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .welcome-message p {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .feature {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .feature h3 {
+            color: #495057;
+            margin-bottom: 8px;
+        }
+
+        .feature p {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                height: 100vh;
+                border-radius: 0;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .message-bubble {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 医疗知识图谱问答系统</h1>
+            <p>智能医疗助手，为您提供专业的医疗知识问答服务</p>
+        </div>
+        
+        <div class="chat-container">
+            <div class="chat-messages" id="chatMessages">
+                <div class="welcome-message">
+                    <h2>欢迎使用医疗问答系统！</h2>
+                    <p>我是您的智能医疗助手，可以为您提供以下服务：</p>
+                    <div class="features">
+                        <div class="feature">
+                            <div class="feature-icon">🩺</div>
+                            <h3>症状查询</h3>
+                            <p>了解疾病症状</p>
+                        </div>
+                        <div class="feature">
+                            <div class="feature-icon">🔍</div>
+                            <h3>病因分析</h3>
+                            <p>分析疾病成因</p>
+                        </div>
+                        <div class="feature">
+                            <div class="feature-icon">💊</div>
+                            <h3>治疗建议</h3>
+                            <p>提供治疗信息</p>
+                        </div>
+                        <div class="feature">
+                            <div class="feature-icon">📋</div>
+                            <h3>疾病描述</h3>
+                            <p>详细疾病介绍</p>
+                        </div>
+                    </div>
+                    <p style="margin-top: 20px; font-size: 0.9rem; color: #dc3545;">
+                        ⚠️ 重要提醒：本系统仅供参考，不能替代专业医疗建议。如有严重疾病，请及时就医。
+                    </p>
+                </div>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="typing-indicator">
+                    <span>小勇正在思考</span>
+                    <div class="typing-dots">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="input-container">
+                <input type="text" class="input-field" id="messageInput" placeholder="请输入您的问题..." autocomplete="off">
+                <button class="send-button" id="sendButton">发送</button>
+            </div>
+            
+            <div class="examples">
+                <h3>💡 示例问题：</h3>
+                <div class="example-buttons">
+                    <button class="example-btn" onclick="askQuestion('乳腺癌的症状有哪些？')">乳腺癌的症状有哪些？</button>
+                    <button class="example-btn" onclick="askQuestion('糖尿病')">糖尿病</button>
+                    <button class="example-btn" onclick="askQuestion('为什么有的人会失眠？')">为什么有的人会失眠？</button>
+                    <button class="example-btn" onclick="askQuestion('感冒要多久才能好？')">感冒要多久才能好？</button>
+                    <button class="example-btn" onclick="askQuestion('高血压怎么治疗？')">高血压怎么治疗？</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 医疗问答系统前端
+        class MedicalQAFrontend {
+            constructor() {
+                this.chatMessages = document.getElementById('chatMessages');
+                this.messageInput = document.getElementById('messageInput');
+                this.sendButton = document.getElementById('sendButton');
+                this.loading = document.getElementById('loading');
+                
+                this.init();
+            }
+            
+            init() {
+                // 绑定事件
+                this.sendButton.addEventListener('click', () => this.sendMessage());
+                this.messageInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.sendMessage();
+                    }
+                });
+                
+                // 聚焦输入框
+                this.messageInput.focus();
+            }
+            
+            sendMessage() {
+                const message = this.messageInput.value.trim();
+                if (!message) return;
+                
+                // 显示用户消息
+                this.addMessage(message, 'user');
+                
+                // 清空输入框
+                this.messageInput.value = '';
+                
+                // 显示加载状态
+                this.showLoading();
+                
+                // 模拟API调用
+                setTimeout(() => {
+                    this.hideLoading();
+                    this.getAnswer(message);
+                }, 1000);
+            }
+            
+            addMessage(content, sender) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${sender}`;
+                
+                const bubbleDiv = document.createElement('div');
+                bubbleDiv.className = 'message-bubble';
+                bubbleDiv.textContent = content;
+                
+                const timeDiv = document.createElement('div');
+                timeDiv.className = 'message-time';
+                timeDiv.textContent = new Date().toLocaleTimeString();
+                
+                messageDiv.appendChild(bubbleDiv);
+                messageDiv.appendChild(timeDiv);
+                
+                this.chatMessages.appendChild(messageDiv);
+                this.scrollToBottom();
+            }
+            
+            showLoading() {
+                this.loading.classList.add('show');
+                this.scrollToBottom();
+            }
+            
+            hideLoading() {
+                this.loading.classList.remove('show');
+            }
+            
+            getAnswer(question) {
+                // 模拟医疗问答逻辑
+                const answers = this.getMockAnswer(question);
+                this.addMessage(answers, 'assistant');
+            }
+            
+            getMockAnswer(question) {
+                // 模拟答案库
+                const mockAnswers = {
+                    '乳腺癌的症状有哪些？': '乳腺癌的症状包括：胸痛、共济失调、咯血、痰中带血丝、胸闷、呛咳、眩晕等。建议及时就医检查。',
+                    '糖尿病': '糖尿病是一种比较常见的内分泌代谢性疾病。主要表现为烦渴、多饮、多尿、多食、乏力、消瘦等症状。需要控制饮食，定期监测血糖。',
+                    '为什么有的人会失眠？': '失眠的成因包括：躯体疾病和服用药物影响睡眠，如消化不良、头痛、关节炎等。生活方式因素如饮用咖啡、晚间饮酒、睡前剧烈活动等。心理因素如压力、焦虑、抑郁等。',
+                    '感冒要多久才能好？': '感冒的治疗信息：\n治疗方式：对症治疗、中医治疗、支持性治疗\n治疗周期：7-14天\n治愈概率：97%',
+                    '高血压怎么治疗？': '高血压的治疗信息：\n治疗方式：药物治疗、手术治疗、支持性治疗\n治疗周期：1-3个月\n治愈概率：0.0001%(终身性疾病)'
+                };
+                
+                // 检查是否有直接匹配
+                if (mockAnswers[question]) {
+                    return mockAnswers[question];
+                }
+                
+                // 模糊匹配
+                for (const [key, value] of Object.entries(mockAnswers)) {
+                    if (question.includes(key.split('？')[0]) || key.includes(question)) {
+                        return value;
+                    }
+                }
+                
+                // 默认回答
+                return '您好，我是小勇医药智能助理，希望可以帮到您。如果没答上来，可联系https://liuhuanyong.github.io/。祝您身体棒棒！';
+            }
+            
+            scrollToBottom() {
+                this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+            }
+        }
+        
+        // 全局函数
+        function askQuestion(question) {
+            const input = document.getElementById('messageInput');
+            input.value = question;
+            document.getElementById('sendButton').click();
+        }
+        
+        // 初始化应用
+        document.addEventListener('DOMContentLoaded', () => {
+            new MedicalQAFrontend();
+        });
+    </script>
+</body>
+</html>
