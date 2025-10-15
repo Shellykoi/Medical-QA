@@ -1,5 +1,5 @@
-Flask==2.3.3
-py2neo==2021.2.3
-pyahocorasick==2.0.0
-pymongo==4.5.0
-lxml==4.9.3
+Flask>=2.3.0
+py2neo>=2021.2.4
+pyahocorasick>=2.0.0
+pymongo>=4.5.0
+lxml>=4.9.0
